@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../services/firebase";
+import "../styles/Dashboard.css";
 
 export default function Dashboard() {
-  const deviceId = "SNACK-01"; // change if dynamic later
+  const deviceId = "SNACK-01";
   const [data, setData] = useState(null);
 
   useEffect(() => {
@@ -27,35 +28,37 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ padding: "30px" }}>
-      <h1>Dashboard</h1>
-      <p>Welcome, <b>{auth.currentUser?.email}</b></p>
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h1>Dashboard</h1>
+        <p>Welcome, <b>{auth.currentUser?.email}</b></p>
 
-      {/* === Quick Navigation Buttons === */}
-      <div style={{ marginTop: "20px", display: "flex", gap: "20px", flexWrap: "wrap" }}>
-        <Link to="/deviceRegister">
-          <button className="dash-btn">Register Device</button>
-        </Link>
+        {/* Navigation Buttons */}
+        <div className="navigation-buttons">
+          <Link to="/deviceRegister">
+            <button className="dash-btn">Register Device</button>
+          </Link>
 
-        <Link to="/deviceStatus">
-          <button className="dash-btn">Device Status</button>
-        </Link>
+          <Link to="/deviceStatus">
+            <button className="dash-btn">Device Status</button>
+          </Link>
 
-        <Link to="/manualFeed">
-          <button className="dash-btn">Manual Feed</button>
-        </Link>
+          <Link to="/manualFeed">
+            <button className="dash-btn">Manual Feed</button>
+          </Link>
 
-        <Link to="/feederSetting">
-          <button className="dash-btn">Feeder Settings</button>
-        </Link>
+          <Link to="/feederSetting">
+            <button className="dash-btn">Feeder Settings</button>
+          </Link>
+        </div>
       </div>
 
-      {/* === Device Info Section === */}
-      <div style={{ marginTop: "30px" }}>
+      {/* Device Info Section */}
+      <div className="device-overview">
         <h2>Device Overview</h2>
 
         {!data ? (
-          <p>Loading device data...</p>
+          <div className="loading">Loading device data...</div>
         ) : (
           <div className="device-grid">
             <div className="device-card">
@@ -99,7 +102,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* === Refresh Button === */}
+      {/* Refresh Button */}
       <button onClick={loadStatus} className="refresh-btn">
         Refresh Data
       </button>

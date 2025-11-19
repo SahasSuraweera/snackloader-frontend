@@ -1,6 +1,6 @@
-// ManualFeed.jsx
 import React, { useState } from "react";
 import { auth } from "../services/firebase";
+import "../styles/ManualFeed.css";
 
 export default function ManualFeed({ deviceId = "SNACK-01" }) {
   const [catAmount, setCatAmount] = useState(30);
@@ -18,19 +18,45 @@ export default function ManualFeed({ deviceId = "SNACK-01" }) {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Manual Feed</h2>
+    <div className="manual-feed-container">
+      <div className="feed-card">
+        <h2>Manual Feed</h2>
 
-      <div>
-        <h3>Feed Cat</h3>
-        <input type="number" value={catAmount} onChange={e => setCatAmount(e.target.value)} />
-        <button onClick={() => feed("cat", catAmount)}>Feed Cat</button>
-      </div>
+        <div className="pet-feed-section">
+          <h3>🐱 Feed Cat</h3>
+          <div className="feed-controls">
+            <input 
+              type="number" 
+              className="feed-input"
+              value={catAmount} 
+              onChange={e => setCatAmount(e.target.value)} 
+            />
+            <button 
+              className="feed-button cat"
+              onClick={() => feed("cat", catAmount)}
+            >
+              Feed Cat
+            </button>
+          </div>
+        </div>
 
-      <div>
-        <h3>Feed Dog</h3>
-        <input type="number" value={dogAmount} onChange={e => setDogAmount(e.target.value)} />
-        <button onClick={() => feed("dog", dogAmount)}>Feed Dog</button>
+        <div className="pet-feed-section">
+          <h3>🐶 Feed Dog</h3>
+          <div className="feed-controls">
+            <input 
+              type="number" 
+              className="feed-input"
+              value={dogAmount} 
+              onChange={e => setDogAmount(e.target.value)} 
+            />
+            <button 
+              className="feed-button"
+              onClick={() => feed("dog", dogAmount)}
+            >
+              Feed Dog
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

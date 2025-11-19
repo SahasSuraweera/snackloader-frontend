@@ -1,0 +1,79 @@
+.device-register-container {
+  min-height: 100vh;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+              url('../assets/pet-accessories-dry-food.jpg') center/cover no-repeat;
+  padding: 40px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  padding: 50px 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.register-card h2 {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #1a202c;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.register-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid rgba(232, 232, 232, 0.8);
+  border-radius: 10px;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  margin-bottom: 25px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  backdrop-filter: blur(5px);
+}
+
+.register-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  background: white;
+}
+
+.register-button {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  padding: 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.register-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+}
+
+@media (max-width: 768px) {
+  .device-register-container {
+    padding: 20px;
+  }
+  
+  .register-card {
+    padding: 40px 30px;
+  }
+}

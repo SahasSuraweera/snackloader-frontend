@@ -1,0 +1,138 @@
+.device-status-container {
+  min-height: 100vh;
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+              url('../assets/still-life-pet-food-arrangement.jpg') center/cover no-repeat;
+  padding: 40px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.status-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  max-width: 800px;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.status-card h2 {
+  color: #1a202c;
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.status-overview {
+  background: rgba(248, 250, 252, 0.8);
+  backdrop-filter: blur(5px);
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border-left: 4px solid #007bff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.status-item:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  color: #4a5568;
+  font-weight: 600;
+}
+
+.status-value {
+  color: #1a202c;
+  font-weight: 700;
+}
+
+.status-value.online {
+  color: #48bb78;
+}
+
+.status-value.offline {
+  color: #f56565;
+}
+
+.pet-section {
+  background: rgba(248, 250, 252, 0.8);
+  backdrop-filter: blur(5px);
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.pet-section h3 {
+  color: #2d3748;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(226, 232, 240, 0.6);
+}
+
+.pet-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.pet-detail-item {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 3px solid #007bff;
+  transition: transform 0.2s ease;
+}
+
+.pet-detail-item:hover {
+  transform: translateY(-1px);
+}
+
+.pet-detail-label {
+  color: #718096;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.pet-detail-value {
+  color: #1a202c;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.loading {
+  text-align: center;
+  color: #718096;
+  font-size: 1.1rem;
+  padding: 40px;
+}
+
+@media (max-width: 768px) {
+  .device-status-container {
+    padding: 20px;
+  }
+  
+  .status-card {
+    padding: 30px 20px;
+  }
+  
+  .pet-details {
+    grid-template-columns: 1fr;
+  }
+}
