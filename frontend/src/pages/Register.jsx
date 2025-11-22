@@ -44,10 +44,18 @@ const Register = () => {
       });
 
       alert("Registration Successful!");
-      window.location.href = "/";
+      window.location.href = "/dashboard";
 
     } catch (err) {
-      setError(err.message);
+      if (err.code === "auth/email-already-in-use") {
+        setError("An account with this email already exists.");
+      } else if (err.code === "auth/weak-password") {
+        setError("Password should be at least 6 characters.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Invalid email address.");
+      } else {
+        setError(err.message);
+      }
     }
 
     setLoading(false);
@@ -55,68 +63,166 @@ const Register = () => {
 
   return (
     <div className="register-container">
-      {/* Left Side - Brand Only */}
-      <div className="register-left">
-        <h1 className="brand-title">Snack Loader</h1>
-      </div>
+      <div className="register-content">
+        {/* Form Side */}
+        <div className="register-form-section">
+          <div className="register-card">
+            <div className="logo-section">
+              <div className="logo">
+                <span className="logo-icon">🐾</span>
+                <h1 className="brand-title">SnackLoader</h1>
+              </div>
+              <p className="welcome-text">Create your account</p>
+            </div>
 
-      {/* Right Side - Floating Register Card */}
-      <div className="register-right">
-        <div className="register-card">
-          <h2 className="register-title">Create Account</h2>
+            {error && (
+              <div className="error-message">
+                <span className="error-icon">⚠️</span>
+                {error}
+              </div>
+            )}
 
-          {error && <p className="register-error">{error}</p>}
+            <form onSubmit={handleRegister} className="register-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="name" className="form-label">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your full name"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+              </div>
 
-          <form onSubmit={handleRegister} className="register-form">
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={form.name}
-              onChange={handleChange}
-              className="register-input"
-              required
-            />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="email" className="form-label">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    value={form.email}
+                    onChange={handleChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+              </div>
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              value={form.email}
-              onChange={handleChange}
-              className="register-input"
-              required
-            />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="phone" className="form-label">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter your phone number"
+                    value={form.phone}
+                    onChange={handleChange}
+                    className="form-input"
+                    required
+                  />
+                </div>
+              </div>
 
-            <input
-              type="text"
-              name="phone"
-              placeholder="Phone Number"
-              value={form.phone}
-              onChange={handleChange}
-              className="register-input"
-              required
-            />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="password" className="form-label">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Create a password"
+                    value={form.password}
+                    onChange={handleChange}
+                    className="form-input"
+                    required
+                    minLength="6"
+                  />
+                  <div className="password-hint">
+                    Must be at least 6 characters
+                  </div>
+                </div>
+              </div>
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              className="register-input"
-              required
-            />
+              <div className="form-row">
+                <button 
+                  type="submit" 
+                  className="register-button" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <div className="button-spinner"></div>
+                      Creating Account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </button>
+              </div>
+            </form>
 
-            <button type="submit" className="register-button" disabled={loading}>
-              {loading ? "Creating Account..." : "Sign Up"}
-            </button>
-          </form>
+            <div className="register-footer">
+              <p>
+                Already have an account?{" "}
+                <a href="/login" className="auth-link">
+                  Login here
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
 
-          <p className="register-footer">
-            Already have an account?{" "}
-            <a href="/login" className="register-link">Login here</a>
-          </p>
+        {/* Info Side */}
+        <div className="register-info-section">
+          <div className="info-content">
+            <h2>Join Our Pet Loving Community</h2>
+            <div className="benefits-list">
+              <div className="benefit">
+                <span className="benefit-icon">✅</span>
+                <div className="benefit-text">
+                  <h4>Easy Setup</h4>
+                  <p>Get started in minutes with simple setup</p>
+                </div>
+              </div>
+              <div className="benefit">
+                <span className="benefit-icon">🐱🐶</span>
+                <div className="benefit-text">
+                  <h4>Multi-Pet Support</h4>
+                  <p>Manage multiple pets with individual schedules</p>
+                </div>
+              </div>
+              <div className="benefit">
+                <span className="benefit-icon">📊</span>
+                <div className="benefit-text">
+                  <h4>Smart Analytics</h4>
+                  <p>Track feeding patterns and pet health</p>
+                </div>
+              </div>
+              <div className="benefit">
+                <span className="benefit-icon">🔒</span>
+                <div className="benefit-text">
+                  <h4>Secure & Reliable</h4>
+                  <p>Your data and pets are safe with us</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
