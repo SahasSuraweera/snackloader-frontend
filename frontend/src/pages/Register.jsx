@@ -180,7 +180,7 @@ const Register = () => {
             <div className="register-footer">
               <p>
                 Already have an account?{" "}
-                <a href="/login" className="auth-link">
+                <a href="/" className="auth-link">
                   Login here
                 </a>
               </p>
