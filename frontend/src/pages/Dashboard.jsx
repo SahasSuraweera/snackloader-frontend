@@ -51,7 +51,7 @@ export default function Dashboard() {
     const catDetectedRef = ref(rtdb, 'detectionStatus/cat/detected');
     const catConfidenceRef = ref(rtdb, 'detectionStatus/cat/confidence');
     const catDetectionTimestampRef = ref(rtdb, 'detectionStatus/cat/timestamp');
-    
+
     const dogDetectedRef = ref(rtdb, 'detectionStatus/dog/detected');
     const dogConfidenceRef = ref(rtdb, 'detectionStatus/dog/confidence');
     const dogDetectionTimestampRef = ref(rtdb, 'detectionStatus/dog/timestamp');
@@ -60,7 +60,7 @@ export default function Dashboard() {
     const catWeightRef = ref(rtdb, 'petfeeder/cat/bowlWeight/weight');
     const catUnitRef = ref(rtdb, 'petfeeder/cat/bowlWeight/unit');
     const catWeightTimestampRef = ref(rtdb, 'petfeeder/cat/bowlWeight/timestamp');
-    
+
     const dogWeightRef = ref(rtdb, 'petfeeder/dog/bowlWeight/weight');
     const dogUnitRef = ref(rtdb, 'petfeeder/dog/bowlWeight/unit');
     const dogWeightTimestampRef = ref(rtdb, 'petfeeder/dog/bowlWeight/timestamp');
@@ -200,14 +200,14 @@ export default function Dashboard() {
       off(tempRef, 'value', tempListener);
       off(humidityRef, 'value', humidityListener);
       off(timestampRef, 'value', timestampListener);
-      
+
       off(catDetectedRef, 'value', catDetectedListener);
       off(catConfidenceRef, 'value', catConfidenceListener);
       off(catDetectionTimestampRef, 'value', catDetectionTimestampListener);
       off(dogDetectedRef, 'value', dogDetectedListener);
       off(dogConfidenceRef, 'value', dogConfidenceListener);
       off(dogDetectionTimestampRef, 'value', dogDetectionTimestampListener);
-      
+
       off(catWeightRef, 'value', catWeightListener);
       off(catUnitRef, 'value', catUnitListener);
       off(catWeightTimestampRef, 'value', catWeightTimestampListener);
@@ -229,14 +229,14 @@ export default function Dashboard() {
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "N/A";
     try {
-      const date = typeof timestamp === 'number' 
-        ? new Date(timestamp) 
+      const date = typeof timestamp === 'number'
+        ? new Date(timestamp < 1e12 ? timestamp * 1000 : timestamp)
         : new Date(timestamp);
-      
+
       if (isNaN(date.getTime())) {
         return "Invalid timestamp";
       }
-      
+
       return date.toLocaleString();
     } catch (error) {
       console.error("Error formatting timestamp:", error);
@@ -317,7 +317,7 @@ export default function Dashboard() {
                   <span className="env-label">Current Room Temperature</span>
                 </div>
               </div>
-              
+
               <div className="env-card humidity-card">
                 <div className="env-icon">💧</div>
                 <div className="env-info">
@@ -365,6 +365,9 @@ export default function Dashboard() {
                 <span className="env-label">
                   Confidence: {getConfidenceDisplay(petDetection.cat.confidence)}
                 </span>
+                <span className="env-label">
+                  Last detected: {formatTimestamp(petDetection.cat.timestamp)}
+                </span>
               </div>
             </div>
 
@@ -377,6 +380,9 @@ export default function Dashboard() {
                 </p>
                 <span className="env-label">
                   Confidence: {getConfidenceDisplay(petDetection.dog.confidence)}
+                </span>
+                <span className="env-label">
+                  Last detected: {formatTimestamp(petDetection.dog.timestamp)}
                 </span>
               </div>
             </div>
@@ -395,6 +401,9 @@ export default function Dashboard() {
                   {getWeightDisplay(bowlWeight.cat.weight, bowlWeight.cat.unit)}
                 </p>
                 <span className="env-label">Current food weight</span>
+                <span className="env-label">
+                  Last measured: {formatTimestamp(bowlWeight.cat.timestamp)}
+                </span>
               </div>
             </div>
 
@@ -406,6 +415,9 @@ export default function Dashboard() {
                   {getWeightDisplay(bowlWeight.dog.weight, bowlWeight.dog.unit)}
                 </p>
                 <span className="env-label">Current food weight</span>
+                <span className="env-label">
+                  Last measured: {formatTimestamp(bowlWeight.dog.timestamp)}
+                </span>
               </div>
             </div>
           </div>

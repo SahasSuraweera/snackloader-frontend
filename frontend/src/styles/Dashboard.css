@@ -210,6 +210,10 @@
   font-size: 2.5rem;
 }
 
+.env-info {
+  flex: 1;
+}
+
 .env-info h3 {
   color: #4a5568;
   font-size: 1rem;
@@ -235,9 +239,17 @@
   font-weight: normal;
 }
 
+.env-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 8px;
+}
+
 .env-label {
   color: #718096;
   font-size: 0.8rem;
+  display: block;
 }
 
 .temperature-card {
