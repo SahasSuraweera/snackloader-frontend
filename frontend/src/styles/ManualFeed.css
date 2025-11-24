@@ -390,3 +390,63 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* THI INFO CARD */
+.thi-info-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 30px;
+  margin-top: 30px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border-left: 5px solid #6b46c1;
+}
+
+.thi-info-card h3 {
+  font-size: 1.5rem;
+  color: #2d3748;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.thi-note {
+  color: #4a5568;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+}
+
+.thi-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.thi-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-weight: 600;
+}
+
+.thi-row.cool {
+  background: rgba(72, 187, 120, 0.15);
+}
+
+.thi-row.normal {
+  background: rgba(66, 153, 225, 0.15);
+}
+
+.thi-row.warm {
+  background: rgba(237, 137, 54, 0.20);
+}
+
+.thi-row.hot {
+  background: rgba(255, 87, 34, 0.25);
+}
+
+.thi-row.danger {
+  background: rgba(220, 38, 38, 0.25);
+  color: #b91c1c;
+}

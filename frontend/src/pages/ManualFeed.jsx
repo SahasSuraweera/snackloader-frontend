@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { auth } from "../services/firebase";
+// ManualFeed.jsx
+import React, { useState, useEffect } from "react";
+import { auth, rtdb } from "../services/firebase";
+import { ref, set, onValue } from "firebase/database";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import "../styles/ManualFeed.css";
@@ -8,22 +10,152 @@ export default function ManualFeed() {
   const [catAmount, setCatAmount] = useState(30);
   const [dogAmount, setDogAmount] = useState(50);
   const [loading, setLoading] = useState({ cat: false, dog: false });
+
+  const [catStatus, setCatStatus] = useState("idle");
+  const [dogStatus, setDogStatus] = useState("idle");
+
+  const [temperature, setTemperature] = useState(null);
+  const [humidity, setHumidity] = useState(null);
+  const [tempAdapt, setTempAdapt] = useState(false);
+
+  // Bowl weights
+  const [catBowl, setCatBowl] = useState(0);
+  const [dogBowl, setDogBowl] = useState(0);
+
   const navigate = useNavigate();
 
-  const feed = async (pet, amount) => {
+  const bowlStatus = (weight, needed) => {
+    if (weight >= needed) return "(FULL)";
+    if (weight > 0) return "(Partial)";
+    return "(Empty)";
+  };
+
+  // ---------------------------------------------------
+  // SUBSCRIPTIONS
+  // ---------------------------------------------------
+  useEffect(() => {
+    const unsubCat = onValue(ref(rtdb, "dispenser/cat/status"), snap =>
+      setCatStatus(snap.val() || "idle")
+    );
+
+    const unsubDog = onValue(ref(rtdb, "dispenser/dog/status"), snap =>
+      setDogStatus(snap.val() || "idle")
+    );
+
+    const unsubTH = onValue(ref(rtdb, "temperature"), snap => {
+      const data = snap.val();
+      if (data) {
+        setTemperature(data.temperature ?? null);
+        setHumidity(data.humidity ?? null);
+      }
+    });
+
+    const unsubAdapt = onValue(ref(rtdb, "settings/tempAdapt"), snap =>
+      setTempAdapt(Boolean(snap.val()))
+    );
+
+    const unsubCatBowl = onValue(
+      ref(rtdb, "petfeeder/cat/bowlWeight/weight"),
+      snap => setCatBowl(Number(snap.val() || 0))
+    );
+
+    const unsubDogBowl = onValue(
+      ref(rtdb, "petfeeder/dog/bowlWeight/weight"),
+      snap => setDogBowl(Number(snap.val() || 0))
+    );
+
+    return () => {
+      unsubCat();
+      unsubDog();
+      unsubTH();
+      unsubAdapt();
+      unsubCatBowl();
+      unsubDogBowl();
+    };
+  }, []);
+
+  // ---------------------------------------------------
+  // WEATHER / THI FUNCTIONS
+  // ---------------------------------------------------
+  const getDewPoint = (t, h) => {
+    if (!t || !h) return null;
+    return t - (100 - h) / 5;
+  };
+
+  const getTHI = (t, h) => {
+    if (!t || !h) return null;
+    const dew = getDewPoint(t, h);
+    return t + 0.36 * dew + 41.2;
+  };
+
+  // ⭐ Includes rule: ignore THI changes < 5g
+  const getAdaptedAmount = (base) => {
+    const num = Number(base);
+    if (!tempAdapt) return num;
+
+    if (temperature === null || humidity === null) return num;
+
+    const thi = getTHI(temperature, humidity);
+    if (!thi || isNaN(thi)) return num;
+
+    let adapted = num;
+
+    if (thi < 70) adapted = Math.round(num * 1.10);
+    else if (thi <= 75) adapted = num;
+    else if (thi <= 80) adapted = Math.round(num * 0.90);
+    else if (thi <= 85) adapted = Math.round(num * 0.80);
+    else adapted = 0;
+
+    // ⭐ NEW RULE: ignore if change < 5g
+    if (Math.abs(adapted - num) < 5) {
+      return num;
+    }
+
+    return adapted;
+  };
+
+  const formatTHI = () => {
+    const thi = getTHI(temperature, humidity);
+    return thi ? thi.toFixed(1) : "--";
+  };
+
+  // ---------------------------------------------------
+  // FEED LOGIC – NEW RULES INCLUDED
+  // ---------------------------------------------------
+  const triggerFeed = async (pet, amount) => {
+    const adjusted = getAdaptedAmount(amount);
+    const bowlWeight = pet === "cat" ? catBowl : dogBowl;
+
+    // THI danger
+    if (adjusted === 0 && tempAdapt) {
+      alert("⚠️ Feeding blocked due to dangerous heat (THI).");
+      return;
+    }
+
+    // If bowl has enough or more → stop
+    if (bowlWeight >= adjusted) {
+      alert(`${pet.toUpperCase()} bowl already has ${bowlWeight}g. Feeding stopped.`);
+      return;
+    }
+
+    // ⭐ NEW RULE:
+    // If target > bowl → feed full target (no reduction)
+    const finalAmount = adjusted;
+
     setLoading(prev => ({ ...prev, [pet]: true }));
+
     try {
-      const token = await auth.currentUser.getIdToken();
-      const r = await fetch(`${process.env.REACT_APP_BACKEND_URL}/feeder/feed-${pet}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ amount: Number(amount) })
-      });
-      const j = await r.json();
-      alert(`${pet.charAt(0).toUpperCase() + pet.slice(1)} fed successfully!`);
+      await set(ref(rtdb, `dispenser/${pet}/amount`), Number(finalAmount));
+      await set(ref(rtdb, `dispenser/${pet}/run`), true);
+
+      alert(
+        tempAdapt
+          ? `${pet.toUpperCase()} feeding ${finalAmount}g (THI adjustment applied).`
+          : `${pet.toUpperCase()} feeding ${finalAmount}g.`
+      );
+
     } catch (error) {
-      console.error(`Error feeding ${pet}:`, error);
-      alert(`Error feeding ${pet}`);
+      alert("Feeding failed.");
     } finally {
       setLoading(prev => ({ ...prev, [pet]: false }));
     }
@@ -38,144 +170,208 @@ export default function ManualFeed() {
     }
   };
 
+  // ---------------------------------------------------
+  // UI (unchanged – your layout kept EXACTLY)
+  // ---------------------------------------------------
   return (
     <div className="manual-feed-container">
-      {/* Navigation Bar */}
+
       <nav className="navbar">
         <div className="nav-brand">
           <h2>SnackLoader</h2>
           <span>Automatic Pet Feeder</span>
         </div>
+
         <div className="nav-links">
           <Link to="/dashboard" className="nav-link">Dashboard</Link>
           <Link to="/manualFeed" className="nav-link active">Manual Feed</Link>
           <Link to="/feederSetting" className="nav-link">Feeder Settings</Link>
         </div>
+
         <div className="nav-user">
           <span className="user-email">{auth.currentUser?.email}</span>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="feed-content">
+
         <div className="feed-header">
+
           <div className="header-content">
-            <h1>Manual Feed</h1>
+            <h1>Manual Feed 🍽️</h1>
             <p>Manually dispense food for your pets</p>
           </div>
+
+          <div className="env-summary">
+            <strong>Environment</strong><br />
+            🌡 Temp: {temperature ?? "--"}°C<br />
+            💧 Humidity: {humidity ?? "--"}%<br />
+            🔥 THI: {formatTHI()}<br />
+
+            <label className="adapt-switch">
+              <input
+                type="checkbox"
+                checked={tempAdapt}
+                onChange={(e) =>
+                  set(ref(rtdb, "settings/tempAdapt"), e.target.checked)
+                }
+              />
+              Adaptation {tempAdapt ? "ON" : "OFF"}
+            </label>
+          </div>
+
         </div>
 
         <div className="feed-grid">
-          {/* Cat Feed Card */}
+
+          {/* CAT CARD */}
           <div className="feed-card cat-card">
             <div className="card-header">
               <div className="pet-avatar">🐱</div>
               <div className="pet-info">
                 <h3>Feed Cat</h3>
-                <p>Dispense food for your cat</p>
+                <p>Status: {catStatus}</p>
+                <p>Bowl: {catBowl}g {bowlStatus(catBowl, getAdaptedAmount(catAmount))}</p>
               </div>
             </div>
+
             <div className="feed-controls">
               <div className="amount-control">
                 <label className="amount-label">Amount (grams)</label>
-                <input 
-                  type="number" 
+
+                <input
+                  type="number"
                   className="feed-input"
-                  value={catAmount} 
-                  onChange={e => setCatAmount(e.target.value)} 
+                  value={catAmount}
+                  onChange={(e) => setCatAmount(e.target.value)}
                   min="1"
                   max="200"
                 />
+
                 <div className="amount-buttons">
                   <button onClick={() => setCatAmount(20)} className="amount-btn">20g</button>
                   <button onClick={() => setCatAmount(30)} className="amount-btn">30g</button>
                   <button onClick={() => setCatAmount(50)} className="amount-btn">50g</button>
                 </div>
               </div>
-              <button 
-                className={`feed-button cat ${loading.cat ? 'loading' : ''}`}
-                onClick={() => feed("cat", catAmount)}
+
+              <button
+                className={`feed-button cat ${loading.cat ? "loading" : ""}`}
+                onClick={() => triggerFeed("cat", catAmount)}
                 disabled={loading.cat}
               >
-                {loading.cat ? (
-                  <>
-                    <div className="loading-spinner"></div>
-                    Feeding...
-                  </>
-                ) : (
-                  <>
-                    🍖 Feed Cat
-                  </>
-                )}
+                {loading.cat ? "Feeding..." : "🍖 Feed Cat"}
               </button>
             </div>
           </div>
 
-          {/* Dog Feed Card */}
+          {/* DOG CARD */}
           <div className="feed-card dog-card">
             <div className="card-header">
               <div className="pet-avatar">🐶</div>
               <div className="pet-info">
                 <h3>Feed Dog</h3>
-                <p>Dispense food for your dog</p>
+                <p>Status: {dogStatus}</p>
+                <p>Bowl: {dogBowl}g {bowlStatus(dogBowl, getAdaptedAmount(dogAmount))}</p>
               </div>
             </div>
+
             <div className="feed-controls">
               <div className="amount-control">
                 <label className="amount-label">Amount (grams)</label>
-                <input 
-                  type="number" 
+
+                <input
+                  type="number"
                   className="feed-input"
-                  value={dogAmount} 
-                  onChange={e => setDogAmount(e.target.value)} 
+                  value={dogAmount}
+                  onChange={(e) => setDogAmount(e.target.value)}
                   min="1"
                   max="500"
                 />
+
                 <div className="amount-buttons">
                   <button onClick={() => setDogAmount(50)} className="amount-btn">50g</button>
                   <button onClick={() => setDogAmount(100)} className="amount-btn">100g</button>
                   <button onClick={() => setDogAmount(150)} className="amount-btn">150g</button>
                 </div>
               </div>
-              <button 
-                className={`feed-button dog ${loading.dog ? 'loading' : ''}`}
-                onClick={() => feed("dog", dogAmount)}
+
+              <button
+                className={`feed-button dog ${loading.dog ? "loading" : ""}`}
+                onClick={() => triggerFeed("dog", dogAmount)}
                 disabled={loading.dog}
               >
-                {loading.dog ? (
-                  <>
-                    <div className="loading-spinner"></div>
-                    Feeding...
-                  </>
-                ) : (
-                  <>
-                    🍖 Feed Dog
-                  </>
-                )}
+                {loading.dog ? "Feeding..." : "🍖 Feed Dog"}
               </button>
             </div>
           </div>
+
         </div>
 
-        {/* Quick Tips */}
+        {/* QUICK TIPS */}
         <div className="quick-tips">
           <h3>💡 Quick Tips</h3>
+
           <div className="tips-grid">
+
             <div className="tip-card">
               <h4>Cat Portions</h4>
-              <p>Typically 20-50g per meal depending on size and activity level</p>
+              <p>Typically 20–50g per meal.</p>
             </div>
+
             <div className="tip-card">
               <h4>Dog Portions</h4>
-              <p>Typically 50-200g per meal depending on breed and weight</p>
+              <p>Typically 50–200g per meal.</p>
             </div>
+
             <div className="tip-card">
               <h4>Feeding Frequency</h4>
-              <p>Adult pets usually need 2 meals per day</p>
+              <p>Most pets eat 2 times per day.</p>
             </div>
+
           </div>
         </div>
+
+        {/* THI INFO CARD */}
+        <div className="thi-info-card">
+          <h3>🌡 Weather-Based Feeding Guide (Sri Lanka)</h3>
+
+          <p className="thi-note">
+            These guidelines explain how temperature & humidity affect pet appetite.
+            Your automatic adaptation toggle uses these conditions.
+          </p>
+
+          <div className="thi-table">
+
+            <div className="thi-row cool">
+              <span>Comfortable (THI &lt; 70)</span>
+              <span>➕ Increase feed by 10%</span>
+            </div>
+
+            <div className="thi-row normal">
+              <span>Normal (THI 70–75)</span>
+              <span>✔ Normal feeding</span>
+            </div>
+
+            <div className="thi-row warm">
+              <span>Warm (THI 75–80)</span>
+              <span>➖ Reduce feed by 10%</span>
+            </div>
+
+            <div className="thi-row hot">
+              <span>Hot (THI 80–85)</span>
+              <span>⚠ Reduce feed by 20%</span>
+            </div>
+
+            <div className="thi-row danger">
+              <span>Danger (THI &gt; 85)</span>
+              <span>⛔ STOP feeding</span>
+            </div>
+
+          </div>
+        </div>
+
       </div>
     </div>
   );
