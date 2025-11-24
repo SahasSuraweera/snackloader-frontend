@@ -1,7 +1,8 @@
 // ManualFeed.jsx
-import React, { useState, useEffect } from "react";
-import { auth, rtdb } from "../services/firebase";
+import { useState, useEffect } from "react";
+import { auth, rtdb, db } from "../services/firebase";
 import { ref, set, onValue } from "firebase/database";
+import { doc, updateDoc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import "../styles/ManualFeed.css";
@@ -13,6 +14,8 @@ export default function ManualFeed() {
 
   const [catStatus, setCatStatus] = useState("idle");
   const [dogStatus, setDogStatus] = useState("idle");
+  const [catLastFed, setCatLastFed] = useState(null);
+  const [dogLastFed, setDogLastFed] = useState(null);
 
   const [temperature, setTemperature] = useState(null);
   const [humidity, setHumidity] = useState(null);
@@ -24,10 +27,58 @@ export default function ManualFeed() {
 
   const navigate = useNavigate();
 
+  // ---------------------------------------------------
+  // DAILY INTAKE TRACKING
+  // ---------------------------------------------------
+  const updateDailyIntake = async (pet, userAmount) => {
+    try {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      const dailyIntakeRef = doc(db, "dailyIntake", today);
+
+      // Get current document or create new one
+      const dailySnap = await getDoc(dailyIntakeRef);
+
+      if (dailySnap.exists()) {
+        // Update existing document
+        const currentData = dailySnap.data();
+        const currentTotal = currentData[pet]?.totalDispensed || 0;
+
+        await updateDoc(dailyIntakeRef, {
+          [`${pet}.totalDispensed`]: currentTotal + Number(userAmount),
+          lastUpdated: serverTimestamp()
+        });
+      } else {
+        // Create new document
+        const initialData = {
+          date: today,
+          cat: { totalDispensed: 0, currentBowlWeight: 0, calculatedIntake: 0 },
+          dog: { totalDispensed: 0, currentBowlWeight: 0, calculatedIntake: 0 },
+          lastUpdated: serverTimestamp()
+        };
+
+        initialData[pet].totalDispensed = Number(userAmount);
+        await setDoc(dailyIntakeRef, initialData);
+      }
+
+      console.log(`📊 Daily intake updated: ${pet} +${userAmount}g`);
+    } catch (error) {
+      console.error("Error updating daily intake:", error);
+    }
+  };
+
   const bowlStatus = (weight, needed) => {
     if (weight >= needed) return "(FULL)";
     if (weight > 0) return "(Partial)";
     return "(Empty)";
+  };
+
+  const formatLastFed = (timestamp) => {
+    if (!timestamp) return "Never";
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   // ---------------------------------------------------
@@ -41,6 +92,17 @@ export default function ManualFeed() {
     const unsubDog = onValue(ref(rtdb, "dispenser/dog/status"), snap =>
       setDogStatus(snap.val() || "idle")
     );
+
+    // Subscribe to lastFed timestamps
+    const unsubCatLastFed = onValue(ref(rtdb, "dispenser/cat/lastFed"), snap => {
+      const timestamp = snap.val();
+      if (timestamp) setCatLastFed(timestamp);
+    });
+
+    const unsubDogLastFed = onValue(ref(rtdb, "dispenser/dog/lastFed"), snap => {
+      const timestamp = snap.val();
+      if (timestamp) setDogLastFed(timestamp);
+    });
 
     const unsubTH = onValue(ref(rtdb, "temperature"), snap => {
       const data = snap.val();
@@ -67,6 +129,8 @@ export default function ManualFeed() {
     return () => {
       unsubCat();
       unsubDog();
+      unsubCatLastFed();
+      unsubDogLastFed();
       unsubTH();
       unsubAdapt();
       unsubCatBowl();
@@ -88,7 +152,6 @@ export default function ManualFeed() {
     return t + 0.36 * dew + 41.2;
   };
 
-  // ⭐ Includes rule: ignore THI changes < 5g
   const getAdaptedAmount = (base) => {
     const num = Number(base);
     if (!tempAdapt) return num;
@@ -106,7 +169,6 @@ export default function ManualFeed() {
     else if (thi <= 85) adapted = Math.round(num * 0.80);
     else adapted = 0;
 
-    // ⭐ NEW RULE: ignore if change < 5g
     if (Math.abs(adapted - num) < 5) {
       return num;
     }
@@ -120,7 +182,7 @@ export default function ManualFeed() {
   };
 
   // ---------------------------------------------------
-  // FEED LOGIC – NEW RULES INCLUDED
+  // FEED LOGIC
   // ---------------------------------------------------
   const triggerFeed = async (pet, amount) => {
     const adjusted = getAdaptedAmount(amount);
@@ -138,15 +200,22 @@ export default function ManualFeed() {
       return;
     }
 
-    // ⭐ NEW RULE:
-    // If target > bowl → feed full target (no reduction)
     const finalAmount = adjusted;
 
     setLoading(prev => ({ ...prev, [pet]: true }));
 
     try {
+      // Set status to "completed" and lastFed timestamp immediately
+      const currentTime = Date.now();
+      await set(ref(rtdb, `dispenser/${pet}/status`), "completed");
+      await set(ref(rtdb, `dispenser/${pet}/lastFed`), currentTime);
+
+      // Set amount and trigger feeding
       await set(ref(rtdb, `dispenser/${pet}/amount`), Number(finalAmount));
       await set(ref(rtdb, `dispenser/${pet}/run`), true);
+
+      // Track daily intake with USER-SET amount (not THI-adjusted)
+      await updateDailyIntake(pet, amount);
 
       alert(
         tempAdapt
@@ -171,11 +240,10 @@ export default function ManualFeed() {
   };
 
   // ---------------------------------------------------
-  // UI (unchanged – your layout kept EXACTLY)
+  // UI
   // ---------------------------------------------------
   return (
     <div className="manual-feed-container">
-
       <nav className="navbar">
         <div className="nav-brand">
           <h2>SnackLoader</h2>
@@ -233,6 +301,7 @@ export default function ManualFeed() {
                 <h3>Feed Cat</h3>
                 <p>Status: {catStatus}</p>
                 <p>Bowl: {catBowl}g {bowlStatus(catBowl, getAdaptedAmount(catAmount))}</p>
+                <p>Last Fed: {formatLastFed(catLastFed)}</p>
               </div>
             </div>
 
@@ -274,6 +343,7 @@ export default function ManualFeed() {
                 <h3>Feed Dog</h3>
                 <p>Status: {dogStatus}</p>
                 <p>Bowl: {dogBowl}g {bowlStatus(dogBowl, getAdaptedAmount(dogAmount))}</p>
+                <p>Last Fed: {formatLastFed(dogLastFed)}</p>
               </div>
             </div>
 
@@ -371,7 +441,6 @@ export default function ManualFeed() {
 
           </div>
         </div>
-
       </div>
     </div>
   );

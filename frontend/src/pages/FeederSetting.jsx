@@ -1,3 +1,4 @@
+// FeederSetting.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import { auth, db } from "../services/firebase";
 import { Link, useNavigate } from "react-router-dom";
@@ -30,7 +31,6 @@ export default function FeederSettings() {
         setDogSchedule(data.dog?.schedule || []);
         setAutoFeedEnabled(data.autoFeedEnabled ?? true);
       } else {
-        // Initialize with default values if no settings exist
         setCatSchedule([]);
         setDogSchedule([]);
         setAutoFeedEnabled(true);
@@ -56,7 +56,6 @@ export default function FeederSettings() {
 
       const settingsRef = doc(db, "feederSettings", user.uid);
       
-      // Prepare the data structure for Firestore
       const settingsData = {
         cat: {
           schedule: catSchedule
@@ -69,6 +68,7 @@ export default function FeederSettings() {
         userId: user.uid
       };
 
+      console.log("💾 Saving settings to Firestore:", settingsData);
       await setDoc(settingsRef, settingsData, { merge: true });
       alert("Settings saved successfully to Firestore!");
     } catch (error) {
@@ -102,7 +102,7 @@ export default function FeederSettings() {
     const newScheduleItem = { 
       time, 
       amount: Number(amount),
-      id: Date.now() // Add unique ID for better tracking
+      id: Date.now()
     };
 
     if (pet === 'cat') {
