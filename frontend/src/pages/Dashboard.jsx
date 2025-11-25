@@ -42,12 +42,11 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up real-time listener for temperature and humidity
+    
     const tempRef = ref(rtdb, 'temperature/temperature');
     const humidityRef = ref(rtdb, 'temperature/humidity');
     const timestampRef = ref(rtdb, 'temperature/timestamp');
 
-    // Pet detection listeners
     const catDetectedRef = ref(rtdb, 'detectionStatus/cat/detected');
     const catConfidenceRef = ref(rtdb, 'detectionStatus/cat/confidence');
     const catDetectionTimestampRef = ref(rtdb, 'detectionStatus/cat/timestamp');
@@ -56,7 +55,6 @@ export default function Dashboard() {
     const dogConfidenceRef = ref(rtdb, 'detectionStatus/dog/confidence');
     const dogDetectionTimestampRef = ref(rtdb, 'detectionStatus/dog/timestamp');
 
-    // Bowl weight listeners
     const catWeightRef = ref(rtdb, 'petfeeder/cat/bowlWeight/weight');
     const catUnitRef = ref(rtdb, 'petfeeder/cat/bowlWeight/unit');
     const catWeightTimestampRef = ref(rtdb, 'petfeeder/cat/bowlWeight/timestamp');
@@ -97,7 +95,6 @@ export default function Dashboard() {
       console.error("Error reading timestamp:", error);
     });
 
-    // Pet detection listeners
     const catDetectedListener = onValue(catDetectedRef, (snapshot) => {
       const detected = snapshot.val();
       setPetDetection(prev => ({
@@ -146,7 +143,6 @@ export default function Dashboard() {
       }));
     });
 
-    // Bowl weight listeners
     const catWeightListener = onValue(catWeightRef, (snapshot) => {
       const weight = snapshot.val();
       setBowlWeight(prev => ({
@@ -261,7 +257,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-container">
-      {/* Navigation Bar */}
+      
       <nav className="navbar">
         <div className="nav-brand">
           <h2>SnackLoader</h2>
@@ -278,7 +274,6 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="dashboard-content">
         <div className="dashboard-header">
           <div className="header-content">
@@ -293,7 +288,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Real-time Environmental Data */}
         <div className="environment-section">
           <h2>Environment Monitoring</h2>
           {loading ? (
@@ -351,7 +345,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Pet Detection Section */}
         <div className="environment-section">
           <h2>Pet Detection</h2>
           <div className="environment-cards">
@@ -389,7 +382,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Food Bowl Status */}
         <div className="environment-section">
           <h2>Food Bowl Status</h2>
           <div className="environment-cards">
@@ -423,7 +415,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="quick-actions">
           <h2>Quick Actions</h2>
           <div className="action-buttons">
@@ -440,7 +431,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* System Status */}
         <div className="system-status">
           <h2>System Status</h2>
           <div className="status-grid">

@@ -1,4 +1,4 @@
-// FeederSetting.jsx
+
 import React, { useEffect, useState, useCallback } from "react";
 import { auth, db } from "../services/firebase";
 import { Link, useNavigate } from "react-router-dom";
@@ -70,7 +70,7 @@ export default function FeederSettings() {
 
       console.log("💾 Saving settings to Firestore:", settingsData);
       await setDoc(settingsRef, settingsData, { merge: true });
-      alert("Settings saved successfully to Firestore!");
+      alert("Settings saved successfully!");
     } catch (error) {
       console.error("Error saving settings:", error);
       alert("Error saving settings");
@@ -118,7 +118,7 @@ export default function FeederSettings() {
 
   return (
     <div className="feeder-settings-container">
-      {/* Navigation Bar */}
+     
       <nav className="navbar">
         <div className="nav-brand">
           <h2>SnackLoader</h2>
@@ -135,7 +135,6 @@ export default function FeederSettings() {
         </div>
       </nav>
 
-      {/* Main Content */}
       <div className="settings-content">
         <div className="settings-header">
           <div className="header-content">
@@ -210,7 +209,6 @@ export default function FeederSettings() {
             </div>
           </div>
 
-          {/* Dog Schedule */}
           <div className="settings-card">
             <div className="card-header">
               <div className="pet-icon">🐶</div>
@@ -266,7 +264,6 @@ export default function FeederSettings() {
             </div>
           </div>
 
-          {/* Auto Feed Toggle */}
           <div className="settings-card toggle-card">
             <div className="card-header">
               <div className="pet-icon">⚡</div>
@@ -295,8 +292,7 @@ export default function FeederSettings() {
             </div>
           </div>
         </div>
-
-        {/* Info Section */}
+        
         <div className="info-section">
           <h3>💡 How it works</h3>
           <div className="info-grid">
