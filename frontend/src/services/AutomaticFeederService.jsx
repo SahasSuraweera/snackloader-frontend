@@ -12,14 +12,12 @@ const AutomaticFeederService = () => {
     const [tempAdapt, setTempAdapt] = useState(false);
     const [catBowl, setCatBowl] = useState(0);
     const [dogBowl, setDogBowl] = useState(0);
-    const [currentTime, setCurrentTime] = useState("");
     const [currentDate, setCurrentDate] = useState("");
 
-    // Update current time every second
+    // Update current date every second (for daily intake tracking)
     useEffect(() => {
         const updateTime = () => {
             const now = new Date();
-            setCurrentTime(now.toTimeString().slice(0, 5)); // "HH:MM" format
             setCurrentDate(now.toISOString().split('T')[0]); // "YYYY-MM-DD" format
         };
 
@@ -166,61 +164,60 @@ const AutomaticFeederService = () => {
         } catch (error) {
             console.error(`❌ Automatic feeding failed for ${pet} at ${scheduleTime}:`, error);
         }
-    }, [getAdaptedAmount, catBowl, dogBowl, tempAdapt, updateDailyIntake]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [getAdaptedAmount, catBowl, dogBowl, tempAdapt]);
 
     // ---------------------------------------------------
-    // SCHEDULE CHECKING
+    // SCHEDULE CHECKING WITH PRECISE TIMESTAMP
     // ---------------------------------------------------
     const checkSchedules = useCallback(() => {
-        if (!settings || !settings.autoFeedEnabled || !currentTime) return;
+        if (!settings || !settings.autoFeedEnabled) return;
 
         const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        const timeNow = `${hh}:${mm}`;
         const today = now.toDateString();
 
-        console.log(`🕒 Current time: ${currentTime}, AutoFeed: ${settings.autoFeedEnabled}`);
+        console.log(`🕒 Current time: ${timeNow}, AutoFeed: ${settings.autoFeedEnabled}`);
 
-        // Check cat schedule
+        // CAT
         settings.cat?.schedule?.forEach(schedule => {
             const scheduleKey = `cat_${schedule.time}_${today}`;
 
-            console.log(`🐱 Comparing: Schedule "${schedule.time}" vs Current "${currentTime}"`);
+            console.log(`🐱 Comparing: "${schedule.time}" with "${timeNow}"`);
 
-            if (schedule.time === currentTime) {
+            if (schedule.time === timeNow) {
                 console.log(`✅ Cat schedule match found!`);
                 if (!lastChecked[scheduleKey]) {
                     console.log(`🚀 Triggering cat feeding for ${schedule.amount}g`);
-                    triggerAutomaticFeed('cat', schedule.amount, schedule.time);
-                    setLastChecked(prev => ({
-                        ...prev,
-                        [scheduleKey]: true
-                    }));
+                    triggerAutomaticFeed("cat", schedule.amount, schedule.time);
+                    setLastChecked(prev => ({ ...prev, [scheduleKey]: true }));
                 } else {
                     console.log(`⏭️ Cat feeding already processed today`);
                 }
             }
         });
 
-        // Check dog schedule
+        // DOG
         settings.dog?.schedule?.forEach(schedule => {
             const scheduleKey = `dog_${schedule.time}_${today}`;
 
-            console.log(`🐶 Comparing: Schedule "${schedule.time}" vs Current "${currentTime}"`);
+            console.log(`🐶 Comparing: "${schedule.time}" with "${timeNow}"`);
 
-            if (schedule.time === currentTime) {
+            if (schedule.time === timeNow) {
                 console.log(`✅ Dog schedule match found!`);
                 if (!lastChecked[scheduleKey]) {
                     console.log(`🚀 Triggering dog feeding for ${schedule.amount}g`);
-                    triggerAutomaticFeed('dog', schedule.amount, schedule.time);
-                    setLastChecked(prev => ({
-                        ...prev,
-                        [scheduleKey]: true
-                    }));
+                    triggerAutomaticFeed("dog", schedule.amount, schedule.time);
+                    setLastChecked(prev => ({ ...prev, [scheduleKey]: true }));
                 } else {
                     console.log(`⏭️ Dog feeding already processed today`);
                 }
             }
         });
-    }, [settings, currentTime, lastChecked, triggerAutomaticFeed]);
+
+    }, [settings, lastChecked, triggerAutomaticFeed]);
 
     // ---------------------------------------------------
     // FIREBASE SUBSCRIPTIONS
