@@ -1,4 +1,4 @@
-# 🍽️ SnackLoader – Smart Pet Feeding System
+# 🐾 SnackLoader – Smart Pet Feeding System
 
 SnackLoader is a **smart pet-feeding ecosystem** designed to manage and monitor an **IoT-enabled automatic pet feeder** through a modern web interface.  
 The system enables controlled, pet-specific feeding for households with **multiple pets (cats & dogs)** by integrating **robotics, computer vision, cloud services, and web technologies**.
@@ -71,25 +71,25 @@ https://github.com/starlightaris/SnackLoader-Robot
 
 ## 🔁 System Integration Flow
 
+```text
 Web App (Frontend)
-│
-│ Feeding parameters (time, weight)
-▼
+        │
+        │ Feeding parameters (time, weight)
+        ▼
 Cloud / Database
-│
-│ Commands & synchronization
-▼
+        │
+        │ Commands & synchronization
+        ▼
 Raspberry Pi (Master Controller)
-│
-├── Camera (Pet Detection)
-└── Serial Communication
-▼
-Arduino (Per Pet Unit)
-├── Dispenser Stepper Motor
-├── Bowl Lid Stepper Motor
-└── Load Cell (HX711)
-
-
+        │
+        ├── Camera (Pet Detection)
+        └── Serial Communication
+                ▼
+            Arduino (Per Pet Unit)
+                ├── Dispenser Stepper Motor
+                ├── Bowl Lid Stepper Motor
+                └── Load Cell (HX711)
+```
 ---
 
 ## 🧩 Tech Stack
@@ -106,6 +106,8 @@ Arduino (Per Pet Unit)
 
 ## 📁 Repository Structure
 
+```text
+
 snackloader-frontend/
 │
 ├── frontend/
@@ -118,7 +120,7 @@ snackloader-frontend/
 ├── README.md
 └── package.json
 
-
+```
 ---
 
 ## 🎯 Target Use Cases
