@@ -1,9 +1,8 @@
 # 🐾 SnackLoader – Smart Pet Feeding System
 
-SnackLoader is a **smart pet-feeding ecosystem** designed to manage and monitor an **IoT-enabled automatic pet feeder** through a modern web interface.  
-The system enables controlled, pet-specific feeding for households with **multiple pets (cats & dogs)** by integrating **robotics, computer vision, cloud services, and web technologies**.
+SnackLoader is a **smart pet-feeding ecosystem** designed to manage and monitor an **IoT-enabled automatic pet feeder** through a modern web interface. The system enables controlled, pet-specific feeding for households with **multiple pets (cats & dogs)** by integrating **robotics, computer vision, cloud services, and web technologies**.
 
-This repository contains the **React-based frontend web application**, which allows users to configure feeding schedules, set food portions, and monitor real-time feeding activity collected from the physical SnackLoader robot system.
+This repository contains the **web interface of the SnackLoader ecosystem**, which connects users, cloud services, and the physical robotic feeder. The application integrates with **Firebase and Cloud Firestore** to enable real-time data synchronization, remote monitoring, and communication between the web dashboard and the SnackLoader robot system.
 
 ---
 
@@ -15,10 +14,10 @@ The system ensures **accurate, scheduled, and pet-specific feeding** using intel
 The complete system consists of:
 
 - 🤖 **Robotic Feeding Unit** (Raspberry Pi + Arduino)
-- ☁️ **Cloud-connected Backend**
-- 🌐 **Web-based Frontend Dashboard** (this repository)
+- ☁️ **Cloud-based Data & Synchronization Layer (Firebase / Firestore)**
+- 🌐 **Web-based User Interface** (this repository)
 
-The frontend acts as the **user interaction layer**, enabling configuration, monitoring, and visualization of feeding activities.
+The web interface acts as the **central control and monitoring layer**, allowing users to configure feeding schedules, portion sizes, and observe feeding activity in real time.
 
 ---
 
@@ -76,7 +75,7 @@ Web App (Frontend)
         │
         │ Feeding parameters (time, weight)
         ▼
-Cloud / Database
+Firebase / Cloud Firestore
         │
         │ Commands & synchronization
         ▼
@@ -90,6 +89,20 @@ Raspberry Pi (Master Controller)
                 ├── Bowl Lid Stepper Motor
                 └── Load Cell (HX711)
 ```
+---
+
+## ☁️ Cloud & Data Synchronization
+
+SnackLoader uses Firebase and Cloud Firestore as the cloud backbone of the ecosystem.
+
+Firebase and Firestore are used to:
+- 🗓️ Store feeding schedules and pet-specific configuration data  
+- 🔄 Synchronize real-time feeding status and sensor readings  
+- 🌐 Enable remote monitoring through the web interface  
+- 🔗 Act as a lightweight communication layer between the robot and the web application 
+
+This cloud-based approach ensures that the robot, web interface, and cloud data remain consistently synchronized, even when accessed from different locations or devices.
+
 ---
 
 ## 🧩 Tech Stack
